@@ -27,10 +27,14 @@ import json
 import platform
 
 def get_font(size, weight='normal'):
-    """跨平台字体选择，不指定字体名让系统自动回退"""
+    """跨平台字体选择"""
+    if platform.system() == 'Windows':
+        family = 'Microsoft YaHei UI'
+    else:
+        family = 'Noto Sans CJK SC'
     if weight != 'normal':
-        return ('', size, weight)
-    return ('', size)
+        return (family, size, weight)
+    return (family, size)
 
 class ModernOCRApp:
     def __init__(self, root):
