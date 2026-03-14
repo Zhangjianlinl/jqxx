@@ -27,14 +27,10 @@ import json
 import platform
 
 def get_font(size, weight='normal'):
-    """跨平台字体选择"""
-    if platform.system() == 'Windows':
-        family = 'Microsoft YaHei UI'
-    else:
-        family = 'Noto Sans CJK SC'
+    """跨平台字体选择，不指定字体名让系统自动回退"""
     if weight != 'normal':
-        return (family, size, weight)
-    return (family, size)
+        return ('', size, weight)
+    return ('', size)
 
 class ModernOCRApp:
     def __init__(self, root):
@@ -961,42 +957,38 @@ class ModernOCRApp:
             self.root.after(33, self.update_camera_feed)
     
     def recognize_current_frame(self):
-        """识别当前摄像头帧（使用子进程）"""
-        try:
-            if not self.ocr_engine or not hasattr(self, 'current_frame'):
-                return
-            
-            # 保存为临时文件
-            import tempfile
-            import os
-            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
-                tmp_path = tmp.name
-                image = Image.fromarray(self.current_frame)
-                image.save(tmp_path, quality=85)
-            
-            # 使用子进程调用OCR
-            texts = self.call_ocr_worker(tmp_path)
-            
-            # 删除临时文件
+        """识别当前摄像头帧（后台线程，不阻塞UI）"""
+        # 如果上一次识别还没完成，跳过
+        if getattr(self, '_recognizing', False):
+            return
+        if not self.ocr_engine or not hasattr(self, 'current_frame'):
+            return
+
+        self._recognizing = True
+
+        def do_recognize():
             try:
-                os.unlink(tmp_path)
+                import tempfile, os
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+                    tmp_path = tmp.name
+                    Image.fromarray(self.current_frame).save(tmp_path, quality=85)
+
+                texts = self.call_ocr_worker(tmp_path)
+                try:
+                    os.unlink(tmp_path)
+                except:
+                    pass
+
+                if texts:
+                    dates = self.extract_dates(texts)
+                    if dates:
+                        self.root.after(0, self.display_results, texts, dates)
             except:
                 pass
-            
-            # 只有识别到文字时才处理
-            if not texts:
-                return
-            
-            # 提取日期
-            dates = self.extract_dates(texts)
-            
-            # 只有找到日期时才更新结果
-            if dates:
-                self.display_results(texts, dates)
-            
-        except Exception as e:
-            # 静默处理错误，避免影响摄像头流畅性
-            pass
+            finally:
+                self._recognizing = False
+
+        threading.Thread(target=do_recognize, daemon=True).start()
     
     def recognize_camera_frame(self, frame):
         """识别摄像头帧 - 已废弃，改用主线程机制"""
