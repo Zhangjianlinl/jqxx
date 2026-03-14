@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 虚拟环境
+.env
+.venv
+env/
+venv/
+
+# Conda
+*.conda
+
+# 模型文件（太大，不推）
+*.pdmodel
+*.pdiparams
+*.pdparams
+inference_results/
+log_output/
+output/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
