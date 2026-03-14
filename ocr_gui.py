@@ -27,10 +27,31 @@ import json
 import platform
 
 def get_font(size, weight='normal'):
-    """跨平台字体选择，不指定字体名让系统自动回退"""
+    """跨平台中文字体选择"""
+    system = platform.system()
+    if system == 'Windows':
+        font_name = 'Microsoft YaHei'
+    elif system == 'Darwin':
+        font_name = 'PingFang SC'
+    else:
+        # Linux / Jetson (Ubuntu)
+        # 按优先级尝试常见中文字体
+        import tkinter as _tk
+        import tkinter.font as _tkfont
+        try:
+            _root = _tk._default_root
+            available = _tkfont.families(_root) if _root else []
+        except Exception:
+            available = []
+        for candidate in ('Noto Sans CJK SC', 'WenQuanYi Micro Hei', 'Droid Sans Fallback', 'DejaVu Sans'):
+            if candidate in available:
+                font_name = candidate
+                break
+        else:
+            font_name = 'sans-serif'
     if weight != 'normal':
-        return ('', size, weight)
-    return ('', size)
+        return (font_name, size, weight)
+    return (font_name, size)
 
 class ModernOCRApp:
     def __init__(self, root):
@@ -210,7 +231,7 @@ class ModernOCRApp:
         scrollbar.pack(side='right', fill='y')
         
         self.result_text = tk.Text(result_container,
-                                   font=('Consolas', 11),
+                                   font=get_font(11),
                                    bg='#fafafa',
                                    fg='#262626',
                                    relief='solid',
