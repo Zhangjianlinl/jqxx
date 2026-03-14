@@ -24,6 +24,16 @@ import numpy as np
 import time
 import subprocess
 import json
+import platform
+
+def get_font(size, weight='normal'):
+    """跨平台字体选择"""
+    if platform.system() == 'Windows':
+        family = 'Microsoft YaHei UI'
+    else:
+        # Linux/Jetson：优先用文泉驿，没有就用DejaVu
+        family = 'WenQuanYi Zen Hei'
+    return (family, size, weight) if weight != 'normal' else (family, size)
 
 class ModernOCRApp:
     def __init__(self, root):
@@ -66,7 +76,7 @@ class ModernOCRApp:
         
         # 按钮样式
         style.configure('Primary.TButton',
-                       font=('Microsoft YaHei UI', 11, 'bold'),
+                       font=get_font(11, "bold"),
                        padding=12,
                        background='#1890ff',
                        foreground='white',
@@ -77,7 +87,7 @@ class ModernOCRApp:
         
         # 次要按钮样式
         style.configure('Secondary.TButton',
-                       font=('Microsoft YaHei UI', 10),
+                       font=get_font(10),
                        padding=10,
                        background='#ffffff',
                        foreground='#1890ff',
@@ -85,12 +95,12 @@ class ModernOCRApp:
         
         # 标签样式
         style.configure('Title.TLabel',
-                       font=('Microsoft YaHei UI', 24, 'bold'),
+                       font=get_font(24, "bold"),
                        background='#ffffff',
                        foreground='#1890ff')
         
         style.configure('Subtitle.TLabel',
-                       font=('Microsoft YaHei UI', 12),
+                       font=get_font(12),
                        background='#ffffff',
                        foreground='#8c8c8c')
     
@@ -134,7 +144,7 @@ class ModernOCRApp:
         
         tk.Label(title_frame, 
                 text="📷 图片预览",
-                font=('Microsoft YaHei UI', 14, 'bold'),
+                font=get_font(14, "bold"),
                 bg='#ffffff',
                 fg='#262626').pack(side='left')
         
@@ -144,7 +154,7 @@ class ModernOCRApp:
         
         self.image_label = tk.Label(self.image_frame,
                                     text="点击下方按钮选择图片\n支持 JPG、PNG、BMP 格式",
-                                    font=('Microsoft YaHei UI', 12),
+                                    font=get_font(12),
                                     bg='#fafafa',
                                     fg='#8c8c8c')
         self.image_label.pack(expand=True)
@@ -191,7 +201,7 @@ class ModernOCRApp:
         
         tk.Label(title_frame,
                 text="📋 识别结果",
-                font=('Microsoft YaHei UI', 14, 'bold'),
+                font=get_font(14, "bold"),
                 bg='#ffffff',
                 fg='#262626').pack(side='left')
         
@@ -216,11 +226,11 @@ class ModernOCRApp:
         scrollbar.config(command=self.result_text.yview)
         
         # 配置文本标签样式
-        self.result_text.tag_config('title', font=('Microsoft YaHei UI', 12, 'bold'), foreground='#1890ff')
-        self.result_text.tag_config('success', font=('Microsoft YaHei UI', 11), foreground='#52c41a')
-        self.result_text.tag_config('warning', font=('Microsoft YaHei UI', 11), foreground='#faad14')
-        self.result_text.tag_config('error', font=('Microsoft YaHei UI', 11), foreground='#ff4d4f')
-        self.result_text.tag_config('normal', font=('Microsoft YaHei UI', 10), foreground='#595959')
+        self.result_text.tag_config('title', font=get_font(12, "bold"), foreground='#1890ff')
+        self.result_text.tag_config('success', font=get_font(11), foreground='#52c41a')
+        self.result_text.tag_config('warning', font=get_font(11), foreground='#faad14')
+        self.result_text.tag_config('error', font=get_font(11), foreground='#ff4d4f')
+        self.result_text.tag_config('normal', font=get_font(10), foreground='#595959')
         
         self.show_welcome_message()
     
@@ -232,7 +242,7 @@ class ModernOCRApp:
         
         self.status_label = tk.Label(footer_frame,
                                      text="就绪",
-                                     font=('Microsoft YaHei UI', 10),
+                                     font=get_font(10),
                                      bg='#ffffff',
                                      fg='#8c8c8c',
                                      anchor='w')
@@ -241,7 +251,7 @@ class ModernOCRApp:
         # 版本信息
         version_label = tk.Label(footer_frame,
                                 text="v1.0.0 | Powered by PaddleOCR",
-                                font=('Microsoft YaHei UI', 9),
+                                font=get_font(9),
                                 bg='#ffffff',
                                 fg='#bfbfbf')
         version_label.pack(side='right', padx=20)
@@ -626,7 +636,7 @@ class ModernOCRApp:
         # 标题
         title_label = tk.Label(settings_window,
                               text="⚙️ 系统设置",
-                              font=('Microsoft YaHei UI', 14, 'bold'),
+                              font=get_font(14, "bold"),
                               bg='#ffffff',
                               fg='#1890ff')
         title_label.pack(pady=20)
@@ -638,7 +648,7 @@ class ModernOCRApp:
         # 预警天数设置
         label1 = tk.Label(frame,
                         text="即将过期预警天数：",
-                        font=('Microsoft YaHei UI', 11),
+                        font=get_font(11),
                         bg='#ffffff',
                         fg='#262626')
         label1.grid(row=0, column=0, sticky='w', pady=10)
@@ -648,13 +658,13 @@ class ModernOCRApp:
                                   from_=1,
                                   to=365,
                                   textvariable=days_var,
-                                  font=('Microsoft YaHei UI', 11),
+                                  font=get_font(11),
                                   width=10)
         days_spinbox.grid(row=0, column=1, padx=10, pady=10)
         
         days_label = tk.Label(frame,
                              text="天",
-                             font=('Microsoft YaHei UI', 11),
+                             font=get_font(11),
                              bg='#ffffff',
                              fg='#262626')
         days_label.grid(row=0, column=2, sticky='w', pady=10)
@@ -662,7 +672,7 @@ class ModernOCRApp:
         # 说明文字
         info_label1 = tk.Label(frame,
                              text=f"当产品距离过期日期少于设定天数时\n将显示黄色警告提示",
-                             font=('Microsoft YaHei UI', 9),
+                             font=get_font(9),
                              bg='#ffffff',
                              fg='#8c8c8c',
                              justify='left')
@@ -671,7 +681,7 @@ class ModernOCRApp:
         # 识别间隔设置
         label2 = tk.Label(frame,
                         text="实时识别间隔：",
-                        font=('Microsoft YaHei UI', 11),
+                        font=get_font(11),
                         bg='#ffffff',
                         fg='#262626')
         label2.grid(row=2, column=0, sticky='w', pady=10)
@@ -682,13 +692,13 @@ class ModernOCRApp:
                                      to=10.0,
                                      increment=0.5,
                                      textvariable=interval_var,
-                                     font=('Microsoft YaHei UI', 11),
+                                     font=get_font(11),
                                      width=10)
         interval_spinbox.grid(row=2, column=1, padx=10, pady=10)
         
         interval_label = tk.Label(frame,
                                  text="秒",
-                                 font=('Microsoft YaHei UI', 11),
+                                 font=get_font(11),
                                  bg='#ffffff',
                                  fg='#262626')
         interval_label.grid(row=2, column=2, sticky='w', pady=10)
@@ -696,7 +706,7 @@ class ModernOCRApp:
         # 说明文字
         info_label2 = tk.Label(frame,
                              text=f"摄像头模式下每隔设定时间自动识别\n间隔越短识别越频繁，但更耗性能",
-                             font=('Microsoft YaHei UI', 9),
+                             font=get_font(9),
                              bg='#ffffff',
                              fg='#8c8c8c',
                              justify='left')
