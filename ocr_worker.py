@@ -34,8 +34,7 @@ def run_ocr(image_path):
             # 新版API（PaddleOCR 3.x，Jetson上的新版本）
             ocr = PaddleOCR(
                 lang='ch',
-                use_textline_orientation=False,
-                use_gpu=False
+                use_textline_orientation=False
             )
             result = ocr.predict(image_path)
             # 新版返回结构：list of dict，每个dict含 'rec_texts'
