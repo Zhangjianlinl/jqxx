@@ -37,12 +37,41 @@ def run_ocr(image_path):
                 use_textline_orientation=False
             )
             result = ocr.predict(image_path)
-            # 新版返回结构：list of dict，每个dict含 'rec_texts'
-            if result and isinstance(result, list):
-                for item in result:
-                    if isinstance(item, dict):
-                        rec_texts = item.get('rec_texts', [])
-                        texts.extend([t for t in rec_texts if t and isinstance(t, str)])
+            # 调试：打印原始结构到stderr
+            import sys
+            print(f"[DEBUG] predict result type: {type(result)}", file=sys.stderr)
+            if result is not None:
+                try:
+                    print(f"[DEBUG] result preview: {str(result)[:300]}", file=sys.stderr)
+                except:
+                    pass
+            # 兼容多种返回结构
+            if result is not None:
+                # 如果是生成器，转成list
+                if hasattr(result, '__iter__') and not isinstance(result, (list, dict)):
+                    result = list(result)
+                if isinstance(result, list):
+                    for item in result:
+                        if item is None:
+                            continue
+                        if isinstance(item, dict):
+                            # 标准结构: {'rec_texts': [...], 'rec_scores': [...]}
+                            rec = item.get('rec_texts') or item.get('texts') or item.get('text', [])
+                            if isinstance(rec, list):
+                                texts.extend([t for t in rec if t and isinstance(t, str)])
+                        elif isinstance(item, list):
+                            # 嵌套list结构
+                            for sub in item:
+                                if isinstance(sub, dict):
+                                    rec = sub.get('rec_texts') or sub.get('texts') or sub.get('text', [])
+                                    if isinstance(rec, list):
+                                        texts.extend([t for t in rec if t and isinstance(t, str)])
+                                elif isinstance(sub, (list, tuple)) and len(sub) > 1:
+                                    # 旧式 [[box, (text, score)], ...]
+                                    if isinstance(sub[1], (list, tuple)) and len(sub[1]) > 0:
+                                        t = sub[1][0]
+                                        if t and isinstance(t, str):
+                                            texts.append(t)
         else:
             # 旧版API（PaddleOCR 2.x，Windows上的2.8.1）
             ocr = PaddleOCR(
